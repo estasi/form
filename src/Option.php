@@ -15,15 +15,21 @@ final class Option implements Interfaces\Option
 {
     use Traits\GetAttributesAsIterable;
 
-    private string   $text;
-    private Map      $attributes;
+    private string $text;
+    /** @var \Ds\Map|string|null */
+    private $attributes;
 
     /**
      * @inheritDoc
      */
-    public function __construct(?string $text, $attributes = null)
+    public function __construct(?string $text = null, $attributes = null)
     {
-        $this->text       = $text ?? '';
+        if (false === isset($this->text)) {
+            $this->text = $text ?? '';
+        }
+        if (isset($this->attributes)) {
+            $attributes = $this->attributes;
+        }
         $this->attributes = new Map($this->getAttributesAsIterable($attributes));
     }
 

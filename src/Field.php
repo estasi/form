@@ -5,18 +5,29 @@ declare(strict_types=1);
 namespace Estasi\Form;
 
 use Ds\Map;
+use Ds\Vector;
 use Estasi\Filter\Interfaces\Filter;
 use Estasi\Utility\{
     Traits\Errors,
     Traits\ReceivedTypeForException
 };
 use Estasi\Validator\{
+    Between,
     Boolval,
-    Interfaces\Validator
+    Each,
+    GreaterThan,
+    Interfaces\Chain as ChainValidator,
+    Interfaces\Validator,
+    LessThan,
+    Regex,
+    Step,
+    StringLength
 };
 use InvalidArgumentException;
 use OutOfBoundsException;
 
+use function array_merge;
+use function array_shift;
 use function is_iterable;
 use function sprintf;
 use function substr_compare;
@@ -32,15 +43,16 @@ final class Field implements Interfaces\Field
     use Errors;
     use Traits\Validation;
 
-    private string                $name;
-    private ?Filter               $filter;
-    private ?Validator            $validator;
-    private bool                  $breakOnFailure;
-    private ?string               $label;
-    private ?string               $tooltip;
-    private ?Interfaces\Select    $select;
-    private array                 $values;
-    private Map                   $attributes;
+    private string             $name;
+    private ?Filter            $filter;
+    private ?Validator         $validator;
+    private bool               $breakOnFailure;
+    private ?string            $label;
+    private ?string            $tooltip;
+    private ?Interfaces\Select $select;
+    private array              $values;
+    /** @var \Ds\Vector|\Ds\Map[] */
+    private Vector $attributes;
     /** @var mixed */
     private $context;
 
@@ -86,7 +98,7 @@ final class Field implements Interfaces\Field
     {
         $field                  = clone $this;
         $field->values['raw']   = $value;
-        $field->values['value'] = $field->filter ? ($field->filter)($value) : $value;
+        $field->values['value'] = $this->filter ? ($this->filter)($value) : $value;
         $field->context         = $context;
 
         return $field;
@@ -151,6 +163,14 @@ final class Field implements Interfaces\Field
     /**
      * @inheritDoc
      */
+    public function getAttributes(): iterable
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function isValid(): bool
     {
         if (isset($this->validator) && false === $this->validator->isValid($this->getValue(), $this->context)) {
@@ -174,16 +194,9 @@ final class Field implements Interfaces\Field
             self::OPT_SELECT  => $this->select,
             'errors'          => $this->getLastErrors(),
             'attributes'      => $this->attributes,
-            'required'        => $this->attributes->get('required', false),
+            'required'        => $this->attributes->get(0)
+                                                  ->get('required', false),
         ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getAttributes(): iterable
-    {
-        return $this->attributes;
     }
 
     public function __clone()
@@ -222,8 +235,7 @@ final class Field implements Interfaces\Field
      */
     private function assertDefaultValue(string $name, &$defaultValue): void
     {
-        $nameIsIterable = 0 === substr_compare($name, '[]', -2);
-        if ($nameIsIterable) {
+        if ($this->isFieldArray($name)) {
             if (self::WITHOUT_DEFAULT_VALUE === $defaultValue) {
                 $defaultValue = [];
 
@@ -240,26 +252,71 @@ final class Field implements Interfaces\Field
         }
     }
 
-    private function createAttributes(): Map
+    private function createAttributes(): Vector
     {
-        $attributes = new Map([self::OPT_NAME => $this->name, 'required' => false]);
+        $attributes = new Vector();
+        $attrs      = new Map([self::OPT_NAME => $this->name, 'required' => false]);
 
-        //        if (isset($this->validator)) {
-        //            if ($this->validator instanceof Each) {
-        //                $validator = $this->validator->geValidator();
-        //            }
-        //            if ($this->validator instanceof ChainValidators)  {
-        //                foreach ($this->validator->getValidators() as [$validator]) {
-        //                    if ($validator instanceof Boolval) {
-        //
-        //                    } elseif ($validator instanceof StringLength) {
-        //
-        //                    }
-        //                }
-        //            }
-        //        }
+        if (isset($this->validator)) {
+            $validator = $this->validator instanceof Each ? $this->validator->getValidator() : $this->validator;
 
+            if ($validator instanceof ChainValidator) {
+                foreach ($validator->getValidators() as [$validatorInChain]) {
+                    $attrs->putAll($this->getAttributeByValidator($validatorInChain));
+                }
+            } else {
+                $attrs->putAll($this->getAttributeByValidator($validator));
+            }
+        }
+
+        if ($this->isFieldArray($this->name)) {
+            $defaultValues = $this->getDefaultValue();
+            do {
+                $attributes->push($attrs->merge(['value' => array_shift($defaultValues)]));
+            } while (\boolval($defaultValues));
+        } else {
+            $attributes->push($attrs->merge(['value' => $this->getDefaultValue()]));
+        }
 
         return $attributes;
+    }
+
+    private function getAttributeByValidator(Validator $validator): array
+    {
+        if ($validator instanceof Boolval) {
+            return ['required' => true];
+        }
+        if ($validator instanceof Regex) {
+            return ['pattern' => $validator->pattern['html']];
+        }
+        if ($validator instanceof GreaterThan) {
+            return ['min' => $validator->min];
+        }
+        if ($validator instanceof LessThan) {
+            return ['max' => $validator->max];
+        }
+        if ($validator instanceof Between) {
+            return ['min' => $validator->min, 'max' => $validator->max];
+        }
+        if ($validator instanceof StringLength) {
+            $maxlength = $validator->max > $validator::NO_LENGTH_LIMITATION ? ['maxlength' => $validator->max] : [];
+
+            return array_merge(['minlength' => $validator->min], $maxlength);
+        }
+        if ($validator instanceof Step) {
+            return ['step' => $validator->step];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    private function isFieldArray(string $name): bool
+    {
+        return 0 === substr_compare($name, '[]', -2);
     }
 }

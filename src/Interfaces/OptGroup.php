@@ -32,7 +32,7 @@ interface OptGroup extends JsonSerializable
     /**
      * Returns a list of \Estasi\Form\Interfaces\Option objects
      *
-     * @return iterable<\Estasi\Form\Interfaces\Option>
+     * @return \Estasi\Form\Interfaces\Option[]
      */
     public function getOptions(): iterable;
 

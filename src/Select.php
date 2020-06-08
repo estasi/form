@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Estasi\Form;
 
 use Ds\Vector;
+use IteratorAggregate;
 
 /**
  * Class Select
  *
  * @package Estasi\Form
  */
-final class Select implements Interfaces\Select
+final class Select implements Interfaces\Select, IteratorAggregate
 {
     private Vector $options;
 
@@ -46,6 +47,14 @@ final class Select implements Interfaces\Select
      * @inheritDoc
      */
     public function jsonSerialize()
+    {
+        return $this->options;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getIterator()
     {
         return $this->options;
     }

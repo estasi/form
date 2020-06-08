@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Estasi\Form\Interfaces;
 
-use JsonSerializable;
-
 /**
  * Interface Form
  *
@@ -14,14 +12,24 @@ use JsonSerializable;
  *
  * @package Estasi\Form\Interfaces
  */
-interface Form extends Verifiable, JsonSerializable
+interface Form extends Verifiable
 {
+    /**
+     * Returns true if the name field is found in the form elements, or false if it is not found
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasField(string $name): bool;
+
     /**
      * Returns an object of the \Estasi\Form\Interfaces\Field class by its name (without value)
      *
      * @param string $name
      *
      * @return \Estasi\Form\Interfaces\Field
+     * @throws \OutOfBoundsException If the "name" field is not found in the form elements!
      */
     public function getField(string $name): Field;
 

@@ -117,7 +117,7 @@ interface Field extends Verifiable, JsonSerializable
      * - minlength and maxlength (optional, if the \Estasi\Validator\StringLength validator is set)
      * - step (optional, if the \Estasi\Validator\Step validator is set)
      *
-     * @return iterable<string, string|int|float|bool>
+     * @return iterable<iterable<string, string|int|float|bool>>
      */
     public function getAttributes(): iterable;
 
