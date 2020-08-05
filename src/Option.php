@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Estasi\Form;
 
 use Ds\Map;
+use Estasi\Utility\Traits\Properties__get;
+
+use function compact;
 
 /**
  * Class Option
@@ -14,46 +17,75 @@ use Ds\Map;
 final class Option implements Interfaces\Option
 {
     use Traits\GetAttributesAsIterable;
-
-    private string $text;
-    /** @var \Ds\Map|string|null */
-    private $attributes;
-
+    use Properties__get;
+    
+    private Map $attributes;
+    private int $include;
+    
     /**
      * @inheritDoc
      */
-    public function __construct(?string $text = null, $attributes = null)
+    public function __construct(
+        string $label,
+        string $value,
+        ?string $title = self::WITHOUT_TITLE,
+        ?iterable $attributes = self::WITHOUT_ATTRIBUTES
+    ) {
+        $this->setProperties(compact('label', 'value', 'title'));
+        $this->attributes = new Map($attributes ?? []);
+        $this->include    = self::INCLUDE_ALL;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getLabel(): string
     {
-        if (false === isset($this->text)) {
-            $this->text = $text ?? '';
+        return $this->label;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getValue(): string
+    {
+        return $this->value;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    public function getAttributes(int $include = self::INCLUDE_ALL): iterable
+    {
+        $attributes = $this->attributes->copy();
+        if (($include & self::INCLUDE_TITLE) === self::INCLUDE_TITLE) {
+            $attributes->put(self::OPT_TITLE, $this->title);
         }
-        if (isset($this->attributes)) {
-            $attributes = $this->attributes;
+        if (($include & self::INCLUDE_VALUE) === self::INCLUDE_VALUE) {
+            $attributes->put(self::OPT_VALUE, $this->value);
         }
-        $this->attributes = new Map($this->getAttributesAsIterable($attributes));
+        
+        return $attributes;
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function getText(): string
+    
+    public function setIncludeAttributesJsonSerialize(int $include): void
     {
-        return $this->text;
+        $this->include = $include;
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function getAttributes(): iterable
-    {
-        return $this->attributes;
-    }
-
+    
     /**
      * @inheritDoc
      */
     public function jsonSerialize()
     {
-        return [self::OPT_TEXT => $this->text, self::OPT_ATTRIBUTES => $this->attributes];
+        return $this->properties->merge([self::OPT_ATTRIBUTES => $this->getAttributes($this->include)]);
     }
 }
