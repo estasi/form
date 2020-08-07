@@ -19,13 +19,14 @@ use const JSON_UNESCAPED_UNICODE;
  * Class FieldsAsJson
  *
  * @package Estasi\Form\Utility
+ * @deprecated
  */
 final class Fields
 {
     /**
      * Returns Fields data in JSON format
      *
-     * @param iterable $fields
+     * @param iterable<\Estasi\Form\Interfaces\Field> $fields
      *
      * @return string json
      * @throws \JsonException
@@ -35,15 +36,15 @@ final class Fields
     {
         return json_encode(
             $fields,
-            JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_BIGINT_AS_STRING
-            | JSON_PRESERVE_ZERO_FRACTION | JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_NUMERIC_CHECK
+            JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_BIGINT_AS_STRING | JSON_PRESERVE_ZERO_FRACTION
+            | JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_NUMERIC_CHECK
         );
     }
-
+    
     /**
      * Returns Fields data as an associative array
      *
-     * @param iterable $fields
+     * @param iterable<\Estasi\Form\Interfaces\Field> $fields
      *
      * @return array
      * @throws \JsonException
