@@ -129,7 +129,7 @@ if ($formReg->isValid()) {
 }
 ```
 ### Using an array of fields
-It supports working with arrays of fields, such as "keywords[]".
+It supports working with arrays of fields, such as "store_keywords[]".
 The default value for these fields should be "array" or "null".
 ```php
 <?php
@@ -144,32 +144,32 @@ use Estasi\Form\Utility\Fields;
 use Estasi\Validator\Boolval;
 
 $defaultValues= [
-    'keywords[]' => ['keyword 1', 'keyword 2'],
+    'store_keywords[]' => ['keyword 1', 'keyword 2'],
 ];
 
 $filterEachKeyword = new Each(new Chain(Chain::DEFAULT_PLUGIN_MANAGER, 'trim', 'lowercase'));
 $filterKeywords = (new Chain())->attach($filterEachKeyword)
                                ->attach(new Callback(fn(array $val): array => array_filter($val, 'boolval')));
-$keywords = new Field('keywords[]', $filterKeywords, new Boolval(), Field::WITH_BREAK_ON_FAILURE, $defaultValues['keywords[]'], 'Keywords', 'Tooltip Keywords');
-$form = new Form($keywords);
+$store_keywords = new Field('store_keywords[]', $filterKeywords, new Boolval(), Field::WITH_BREAK_ON_FAILURE, $defaultValues['store_keywords[]'], 'Keywords', 'Tooltip Keywords');
+$form = new Form($store_keywords);
 
 $fields = Fields::convertToArray($form->getFields());
 /*
 $fields = [
-    'keywords[]' => [
-        'name' => 'keywords[]',
+    'store_keywords[]' => [
+        'name' => 'store_keywords[]',
         'label' => 'Keywords',
         'tooltip' => 'Tooltip Keywords',
         'select' => null,
         'errors' => [],
         'attributes' => [
             [
-                'name' => 'keywords[]',
+                'name' => 'store_keywords[]',
                 'required' => true,
                 'value'=> 'keyword 1',
             ],
             [
-                'name' => 'keywords[]',
+                'name' => 'store_keywords[]',
                 'required' => true,
                 'value'=> 'keyword 2',
             ],

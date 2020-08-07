@@ -36,21 +36,21 @@ interface Form extends Verifiable
     /**
      * Returns a list of \Estasi\Form\Interfaces\Field objects (without values)
      *
-     * @return iterable<\Estasi\Form\Interfaces\Field>
+     * @return \Estasi\Form\Interfaces\Field[]
      */
     public function getFields(): iterable;
-
+    
     /**
      * Returns a list of checked \Estasi\Form\Interfaces\Field objects (with values)
      *
-     * @return iterable<\Estasi\Form\Interfaces\Field>
+     * @return \Estasi\Form\Interfaces\Field[]
      */
     public function getFieldsValid(): iterable;
-
+    
     /**
      * Returns a list of \Estasi\Form\Interfaces\Field objects that failed validation (with values and errors)
      *
-     * @return iterable<\Estasi\Form\Interfaces\Field>
+     * @return \Estasi\Form\Interfaces\Field[]
      */
     public function getFieldsInvalid(): iterable;
 
