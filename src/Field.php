@@ -27,7 +27,7 @@ use InvalidArgumentException;
 use OutOfBoundsException;
 
 use function array_merge;
-use function array_shift;
+use function compact;
 use function is_iterable;
 use function sprintf;
 use function substr_compare;
@@ -270,10 +270,11 @@ final class Field implements Interfaces\Field
         }
 
         if ($this->isFieldArray($this->name)) {
-            $defaultValues = $this->getDefaultValue();
-            do {
-                $attributes->push($attrs->merge(['value' => array_shift($defaultValues)]));
-            } while (\boolval($defaultValues));
+            $defaultValues = new Vector($this->getDefaultValue());
+            if ($defaultValues->isEmpty()) {
+                $defaultValues->push(null);
+            }
+            $defaultValues->map(fn($value) => $attributes->push($attrs->merge(compact('value'))));
         } else {
             $attributes->push($attrs->merge(['value' => $this->getDefaultValue()]));
         }

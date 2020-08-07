@@ -127,11 +127,11 @@ final class Form implements Interfaces\Form
                 $this->fieldsValid->put($name, $field);
                 continue;
             }
-
+    
             $isValid = false;
             $this->fieldsInvalid->put($name, $field);
             $this->mergeErrors($field->getLastErrors());
-
+    
             if ($field->isBreakOnFailure()) {
                 break;
             }
