@@ -17,8 +17,8 @@ final class Option implements Interfaces\Option
     use Traits\AssertName;
     use Traits\GetAttributesAsIterable;
     
-    private string     $text;
-    private Map|string $attributes;
+    private string              $text;
+    private Map|string|iterable $attributes;
     
     /**
      * @inheritDoc
