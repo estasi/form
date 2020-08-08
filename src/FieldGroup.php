@@ -24,10 +24,7 @@ final class FieldGroup implements Interfaces\FieldGroup
     use Traits\Validation;
     use Traits\SquareBracketsToDot;
     
-    private string    $name;
-    private bool      $breakOnFailure;
-    private ?string   $label;
-    private ?string   $tooltip;
+    private bool $breakOnFailure;
     /** @var \Estasi\Form\Interfaces\Field[] */
     private array|Vector $fields;
     
@@ -35,17 +32,13 @@ final class FieldGroup implements Interfaces\FieldGroup
      * @inheritDoc
      */
     public function __construct(
-        string $name,
-        ?string $label = self::WITHOUT_LABEL,
-        ?string $tooltip = self::WITHOUT_TOOLTIP,
+        private string $name,
+        private ?string $label = self::WITHOUT_LABEL,
+        private ?string $tooltip = self::WITHOUT_TOOLTIP,
         Field ...$fields
     ) {
         $this->assertName($name);
         $this->setFields(...$fields);
-        
-        $this->name           = $name;
-        $this->label          = $label;
-        $this->tooltip        = $tooltip;
         $this->breakOnFailure = false;
     }
     
@@ -142,7 +135,8 @@ final class FieldGroup implements Interfaces\FieldGroup
         if ($value) {
             $new->fields = $this->fields->map(
                 fn(Field $field): Field => $field->withValue(
-                    ArrayUtils::get($this->squareBracketsToDotDelimiter($field->getName()), $value, null)
+                    ArrayUtils::get($this->squareBracketsToDotDelimiter($field->getName()), $value, null),
+                    $context
                 )
             );
         }

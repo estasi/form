@@ -40,13 +40,6 @@ final class Field implements Interfaces\Field
     use Traits\AssertName;
     use Traits\Validation;
     
-    private string                              $name;
-    private ?Filter                             $filter;
-    private ?Validator                          $validator;
-    private bool                                $breakOnFailure;
-    private ?string                             $label;
-    private ?string                             $tooltip;
-    private ?Interfaces\Select                  $select;
     private array                               $values;
     private Vector                              $attributes;
     private string|int|float|bool|iterable|null $context;
@@ -55,27 +48,20 @@ final class Field implements Interfaces\Field
      * @inheritDoc
      */
     public function __construct(
-        string $name,
-        ?string $label = self::WITHOUT_LABEL,
-        ?string $tooltip = self::WITHOUT_TOOLTIP,
-        bool $breakOnFailure = self::WITHOUT_BREAK_ON_FAILURE,
-        string|int|float|bool|iterable|null $defaultValue = self::WITHOUT_DEFAULT_VALUE,
-        ?Filter $filter = self::WITHOUT_FILTER,
-        ?Validator $validator = self::WITHOUT_VALIDATOR,
-        ?Interfaces\Select $select = self::WITHOUT_SELECT
+        private string $name,
+        private ?string $label = self::WITHOUT_LABEL,
+        private ?string $tooltip = self::WITHOUT_TOOLTIP,
+        private bool $breakOnFailure = self::WITHOUT_BREAK_ON_FAILURE,
+        private string|int|float|bool|iterable|null $defaultValue = self::WITHOUT_DEFAULT_VALUE,
+        private ?Filter $filter = self::WITHOUT_FILTER,
+        private ?Validator $validator = self::WITHOUT_VALIDATOR,
+        private ?Interfaces\Select $select = self::WITHOUT_SELECT
     ) {
-        $this->assertName($name);
-        $this->assertDefaultValue($name, $defaultValue);
+        $this->assertName($this->name);
+        $this->assertDefaultValue($this->name, $this->defaultValue);
         
-        $this->name           = $name;
-        $this->label          = $label;
-        $this->tooltip        = $tooltip;
-        $this->filter         = $filter;
-        $this->validator      = $validator;
-        $this->breakOnFailure = $breakOnFailure;
-        $this->values         = ['value' => null, 'raw' => null, 'default' => $defaultValue];
-        $this->select         = $select;
-        $this->attributes     = $this->createAttributes();
+        $this->values     = ['value' => null, 'raw' => null];
+        $this->attributes = $this->createAttributes();
     }
     
     /**
@@ -114,7 +100,7 @@ final class Field implements Interfaces\Field
      */
     public function getDefaultValue(): string|int|float|bool|iterable|null
     {
-        return $this->values['default'];
+        return $this->defaultValue;
     }
     
     /**
