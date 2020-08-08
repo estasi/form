@@ -19,14 +19,16 @@ final class OptGroup implements Interfaces\OptGroup
 
     private Map    $attributes;
     private Vector $options;
-
+    
     /**
      * @inheritDoc
+     * @throws \JsonException
+     * @noinspection PhpUndefinedClassInspection
      */
     public function __construct(
         string $label,
         bool $disabled = self::ENABLE,
-        $attributes = self::WITHOUT_ATTRIBUTES,
+        string|iterable|null $attributes = self::WITHOUT_ATTRIBUTES,
         Option ...$options
     ) {
         $this->attributes = new Map([self::OPT_LABEL => $label, self::OPT_DISABLED => $disabled]);

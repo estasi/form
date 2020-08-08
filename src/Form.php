@@ -6,10 +6,9 @@ namespace Estasi\Form;
 
 use Ds\Map;
 use Estasi\Form\Interfaces\Field;
-use Estasi\Utility\{
-    ArrayUtils,
-    Traits\Errors
-};
+use Estasi\Form\Interfaces\FieldGroup;
+use Estasi\Utility\ArrayUtils;
+use Estasi\Utility\Traits\Errors;
 use OutOfBoundsException;
 
 use function sprintf;
@@ -24,22 +23,17 @@ final class Form implements Interfaces\Form
     use Errors;
     use Traits\Validation;
     use Traits\SquareBracketsToDot;
-
-    /** @var \Ds\Map|Field[] */
-    private Map $fields;
-
-    /** @var \Ds\Map|Field[] */
-    private Map $fieldsValid;
-
-    /** @var \Ds\Map|Field[] */
-    private Map $fieldsInvalid;
-
-    private array $values;
-
+    
+    private Map    $fields;
+    private Map    $fieldsValid;
+    private Map    $fieldsInvalid;
+    private array  $defaultValues;
+    private ?array $values;
+    
     /**
      * @inheritDoc
      */
-    public function __construct(Field ...$fields)
+    public function __construct(Field|FieldGroup ...$fields)
     {
         $this->fields = new Map();
         foreach ($fields as $field) {
@@ -47,9 +41,10 @@ final class Form implements Interfaces\Form
         }
         $this->fieldsValid   = new Map();
         $this->fieldsInvalid = new Map();
-        $this->values        = [];
+        $this->defaultValues = [];
+        $this->values        = null;
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -57,11 +52,11 @@ final class Form implements Interfaces\Form
     {
         return $this->fields->hasKey($name);
     }
-
+    
     /**
      * @inheritDoc
      */
-    public function getField(string $name): Field
+    public function getField(string $name): Field|FieldGroup
     {
         try {
             return $this->fields->get($name);
@@ -69,7 +64,7 @@ final class Form implements Interfaces\Form
             throw new OutOfBoundsException(sprintf('The "%s" field was not found in the form elements!', $name));
         }
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -77,7 +72,7 @@ final class Form implements Interfaces\Form
     {
         return $this->fields->copy();
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -85,7 +80,7 @@ final class Form implements Interfaces\Form
     {
         return $this->fieldsValid->copy();
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -93,51 +88,57 @@ final class Form implements Interfaces\Form
     {
         return $this->fieldsInvalid->copy();
     }
-
+    
+    /**
+     * @inheritDoc
+     */
+    public function getValues(): ?iterable
+    {
+        return $this->values;
+    }
+    
     /**
      * @inheritDoc
      */
     public function setValues(iterable $values): void
     {
-        $this->values = ArrayUtils::iteratorToArray($values);
+        $this->defaultValues = ArrayUtils::iteratorToArrayRecursive($values);
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function getValues(): iterable
-    {
-        return $this->values;
-    }
-
+    
     /**
      * @inheritDoc
      */
     public function isValid(): bool
     {
         $isValid = true;
-        $values  = [];
-
+        /**
+         * @var string                                                           $name
+         * @var \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup $field
+         */
         foreach ($this->fields as $name => $field) {
-            $name  = $this->squareBracketsToDotDelimiter($field->getName());
-            $field = $field->withValue(ArrayUtils::get($name, $this->values), $this->values);
-
+            $name  = $this->squareBracketsToDotDelimiter($name);
+            $value = ArrayUtils::get($name, $this->defaultValues);
+            $field = $field instanceof FieldGroup
+                ? $field->withValue(ArrayUtils::oneToMultiDimArray([$name => $value]), $this->defaultValues)
+                : $field->withValue($value, $this->defaultValues);
+            
             if ($field->isValid()) {
-                $values[$name] = $field->getValue();
-                $this->fieldsValid->put($name, $field);
+                $this->values[$name] = $field->getValue();
+                $this->fieldsValid->put($field->getName(), $field);
                 continue;
             }
-    
+            
             $isValid = false;
-            $this->fieldsInvalid->put($name, $field);
+            $this->fieldsInvalid->put($field->getName(), $field);
             $this->mergeErrors($field->getLastErrors());
-    
+            
             if ($field->isBreakOnFailure()) {
                 break;
             }
         }
-        $this->values = ArrayUtils::oneToMultiDimArray($values);
-
+        
+        $this->values = ArrayUtils::oneToMultiDimArray($this->values);
+        
         return $isValid;
     }
 }

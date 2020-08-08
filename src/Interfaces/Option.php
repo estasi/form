@@ -16,21 +16,21 @@ interface Option extends JsonSerializable
     // names of constructor parameters to create via the factory
     public const OPT_TEXT       = 'text';
     public const OPT_ATTRIBUTES = 'attributes';
-
+    
     /**
      * Returns text of the option tag
      *
      * @return string
      */
     public function getText(): string;
-
+    
     /**
      * Returns a list of attributes for the option tag
      *
      * @return iterable<string, string|int|float|bool>
      */
     public function getAttributes(): iterable;
-
+    
     /**
      * Option constructor.
      *
@@ -39,6 +39,7 @@ interface Option extends JsonSerializable
      *                                                                        value
      *
      * @throws \JsonException
+     * @noinspection PhpUndefinedClassInspection
      */
-    public function __construct(?string $text, $attributes = null);
+    public function __construct(?string $text, string|iterable|null $attributes = null);
 }

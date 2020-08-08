@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Estasi\Form\Traits;
 
+use Estasi\Utility\Json;
+
+use function is_string;
+
 /**
  * Trait GetAttributesAsIterable
  *
@@ -17,19 +21,11 @@ trait GetAttributesAsIterable
      * @param mixed $attributes
      *
      * @return iterable
+     * @throws \JsonException
+     * @noinspection PhpUndefinedClassInspection
      */
-    private function getAttributesAsIterable($attributes): iterable
+    private function getAttributesAsIterable(string|iterable $attributes): iterable
     {
-        if (isset($attributes)) {
-            if (is_string($attributes)) {
-                $attributes = json_decode($attributes, true, JSON_THROW_ON_ERROR | JSON_BIGINT_AS_STRING);
-            } elseif (false === is_iterable($attributes)) {
-                $attributes = [];
-            }
-        } else {
-            $attributes = [];
-        }
-
-        return $attributes;
+        return is_string($attributes) ? Json::decode($attributes) : $attributes;
     }
 }

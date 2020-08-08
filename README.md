@@ -10,7 +10,7 @@ composer require estasi/form
 ```
 
 ## Requirements
-- PHP 7.4 or newer
+- PHP 8.0 or newer
 - [Data Structures](https://github.com/php-ds/polyfill): 
     `composer require php-ds/php-ds`
     <br><small><i>Polyfill is installed with the estasi/form package.</i></small>
@@ -53,10 +53,10 @@ $passwordConfirmValidator = $passwordValidator->attach(new Identical('password[c
 $emailValidator = (new ValidatorChain())->attach(new Boolval(Boolval::DISALLOW_STR_CONTAINS_ONLY_SPACE), ValidatorChain::WITH_BREAK_ON_FAILURE)
                                         ->attach(new Email(Email::ALLOW_UNICODE), ValidatorChain::WITH_BREAK_ON_FAILURE);
 
-$login = new Field('login', Field::WITHOUT_FILTER, $loginValidator, Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, 'Login', 'Tooltip Login');
-$password = new Field('password[first]', Field::WITHOUT_FILTER, $passwordValidator, Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, 'Password', 'Tooltip Password');
-$passwordConfirm = new Field('password[confirm]', Field::WITHOUT_FILTER, $passwordConfirmValidator, Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, 'Password Confirm', 'Tooltip Password');
-$email = new Field('email', Field::WITHOUT_FILTER, $emailValidator, Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, 'Email', 'Tooltip Email');
+$login = new Field('login', 'Login', 'Tooltip Login', Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, Field::WITHOUT_FILTER, $loginValidator);
+$password = new Field('password[first]', 'Password', 'Tooltip Password', Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, Field::WITHOUT_FILTER, $passwordValidator);
+$passwordConfirm = new Field('password[confirm]', 'Password Confirm', 'Tooltip Password', Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, Field::WITHOUT_FILTER, $passwordConfirmValidator);
+$email = new Field('email', 'Email', 'Tooltip Email', Field::WITH_BREAK_ON_FAILURE, Field::WITHOUT_DEFAULT_VALUE, Field::WITHOUT_FILTER, $emailValidator);
 
 $formReg = new Form($login, $password, $passwordConfirm, $email);
 ```
@@ -69,29 +69,7 @@ If the template engine allows, you can do without converting to an array and use
 declare(strict_types=1);
 
 /** @var \Estasi\Form\Form $formReg */
-$fields = \Estasi\Form\Utility\Fields::convertToArray($formReg->getFields());
-/*
-$fields = [
-    'login' => [
-        'name' => 'login',
-        'label' => 'Login',
-        'tooltip' => 'Tooltip Login',
-        'select' => null,
-        'errors' => [],
-        'attributes' => [
-            [
-                'name' => 'login',
-                'required' => true,
-                'pattern' => '[A-Za-z0-9_]{3,10}',
-                'value'=> null,
-            ],
-        ],
-        'required' => true,
-    ],
-    //...
-];
-*/
-$fieldsJson = \Estasi\Form\Utility\Fields::convertToJson($formReg->getFields());
+$fieldsJson = json_encode($formReg->getFields());
 /*
 $fieldsJson = '{
     "login": {
@@ -129,7 +107,7 @@ if ($formReg->isValid()) {
 }
 ```
 ### Using an array of fields
-It supports working with arrays of fields, such as "store_keywords[]".
+It supports working with arrays of fields, such as "keywords[]".
 The default value for these fields should be "array" or "null".
 ```php
 <?php
@@ -140,47 +118,46 @@ use Estasi\Filter\Chain;
 use Estasi\Filter\Each;
 use Estasi\Form\Field;
 use Estasi\Form\Form;
-use Estasi\Form\Utility\Fields;
 use Estasi\Validator\Boolval;
 
 $defaultValues= [
-    'store_keywords[]' => ['keyword 1', 'keyword 2'],
+    'keywords[]' => ['keyword 1', 'keyword 2'],
 ];
 
 $filterEachKeyword = new Each(new Chain(Chain::DEFAULT_PLUGIN_MANAGER, 'trim', 'lowercase'));
 $filterKeywords = (new Chain())->attach($filterEachKeyword)
                                ->attach(new Callback(fn(array $val): array => array_filter($val, 'boolval')));
-$store_keywords = new Field('store_keywords[]', $filterKeywords, new Boolval(), Field::WITH_BREAK_ON_FAILURE, $defaultValues['store_keywords[]'], 'Keywords', 'Tooltip Keywords');
-$form = new Form($store_keywords);
+$keywords = new Field('keywords[]', 'Keywords', 'Tooltip Keywords', Field::WITH_BREAK_ON_FAILURE, $defaultValues['store_keywords[]'], $filterKeywords, new Boolval());
+$form = new Form($keywords);
 
-$fields = Fields::convertToArray($form->getFields());
+$fields = json_encode($form->getFields());
 /*
-$fields = [
-    'store_keywords[]' => [
+$fields = {
+    'store_keywords[]' => {
         'name' => 'store_keywords[]',
         'label' => 'Keywords',
         'tooltip' => 'Tooltip Keywords',
         'select' => null,
         'errors' => [],
         'attributes' => [
-            [
+            {
                 'name' => 'store_keywords[]',
                 'required' => true,
                 'value'=> 'keyword 1',
-            ],
-            [
+            },
+            {
                 'name' => 'store_keywords[]',
                 'required' => true,
                 'value'=> 'keyword 2',
-            ],
+            },
         ],
         'required' => true,
-    ],
-];
+    },
+};
 */
 ```
 
-### Using with `<select>`
+### Using with `<select>` or `<input type="radio">`
 
 There is support for form fields of the `<select>` type. 
 To do this when initializing the `Field` pass the `Select` object with the selection list.
@@ -195,7 +172,6 @@ use Estasi\Form\Field;
 use Estasi\Form\Form;
 use Estasi\Form\Option;
 use Estasi\Form\Select;
-use Estasi\Form\Utility\Fields;
 
 // You can prepare the selection list by getting data from the database
 /** @var \PDO $pdo */
@@ -219,46 +195,46 @@ $optionsList = [
 $select = new Select(...$optionsList);
 $type = new Field(
     'type', 
-    Field::WITHOUT_FILTER, 
-    Field::WITHOUT_VALIDATOR, 
-    Field::WITH_BREAK_ON_FAILURE, 
-    Field::WITHOUT_DEFAULT_VALUE, 
     'Type', 
     'Tooltip Type', 
+    Field::WITH_BREAK_ON_FAILURE, 
+    Field::WITHOUT_DEFAULT_VALUE, 
+    Field::WITHOUT_FILTER, 
+    Field::WITHOUT_VALIDATOR, 
     $select
 );
 
 $form = new Form($type);
-$fields = Fields::convertToArray($form->getFields());
+$fields = json_encode($form->getFields());
 /*
-$fields = [
-    'type' => [
+$fields = {
+    'type' => {
         'name' => 'type',
         'label' => 'Type',
         'tooltip' => 'Tooltip Type',
         'select' => [
-            [
+            {
                 'text' => 'Foo',
                 'attributes' => ['title' => 'Foo it\'s ...', 'value' => 1]
-            ],
-            [
+            },
+            {
                 'text' => 'Bar',
                 'attributes' => ['title' => 'Bar great!', 'value' => 2]
-            ],
-            [
+            },
+            {
                 'text' => 'Baz',
                 'attributes' => ['value' => 3]
-            ],
+            },
         ],
         'errors' => [],
         'attributes' => [
-            [
+            {
                 'name' => 'type',
                 'value'=> null,
-            ],
+            },
         ],
-    ],
-];
+    },
+};
 */
 ```
 

@@ -18,14 +18,14 @@ interface Select extends Traversable, Countable, JsonSerializable
     /**
      * Returns a list of \Estasi\Form\Interfaces\Option or \Estasi\Form\Interfaces\OptGroup objects
      *
-     * @return \Estasi\Form\Interfaces\Option[]|\Estasi\Form\Interfaces\OptGroup[]
+     * @return iterable|\Estasi\Form\Interfaces\Option[]|\Estasi\Form\Interfaces\OptGroup[]
      */
     public function getOptions(): iterable;
-
+    
     /**
      * OptionsList constructor.
      *
      * @param \Estasi\Form\Interfaces\Option|\Estasi\Form\Interfaces\OptGroup ...$options
      */
-    public function __construct(...$options);
+    public function __construct(Option|OptGroup ...$options);
 }

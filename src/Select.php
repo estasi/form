@@ -15,18 +15,15 @@ use IteratorAggregate;
 final class Select implements Interfaces\Select, IteratorAggregate
 {
     private Vector $options;
-
+    
     /**
      * @inheritDoc
      */
-    public function __construct(...$options)
+    public function __construct(Interfaces\Option|Interfaces\OptGroup ...$options)
     {
-        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
-        $this->options = (new Vector($options))->filter(
-            fn($option): bool => ($option instanceof Interfaces\Option || $option instanceof Interfaces\OptGroup)
-        );
+        $this->options = new Vector($options);
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -34,7 +31,7 @@ final class Select implements Interfaces\Select, IteratorAggregate
     {
         return $this->options;
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -42,7 +39,7 @@ final class Select implements Interfaces\Select, IteratorAggregate
     {
         return $this->options->count();
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -50,7 +47,7 @@ final class Select implements Interfaces\Select, IteratorAggregate
     {
         return $this->options;
     }
-
+    
     /**
      * @inheritDoc
      */

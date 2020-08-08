@@ -24,11 +24,11 @@
         "optimize-autoloader": true
     },
     "require"          : {
-        "php"                  : "^7.4",
+        "php"                  : "^8.0",
         "php-ds/php-ds"        : "dev-master",
         "estasi/filter"        : "^1.0",
         "estasi/validator"     : "^1.2",
-        "estasi/utility"       : "^1.1",
+        "estasi/utility"       : "^1.2",
         "estasi/plugin-manager": "^1.0"
     },
     "autoload"         : {

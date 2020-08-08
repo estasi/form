@@ -21,21 +21,21 @@ interface OptGroup extends JsonSerializable
     public const DISABLED           = true;
     public const ENABLE             = false;
     public const WITHOUT_ATTRIBUTES = null;
-
+    
     /**
      * Returns a list of attributes for the optgroup tag (including the "label" and "disabled" attributes)
      *
      * @return iterable<string, string|int|float|bool>
      */
     public function getAttributes(): iterable;
-
+    
     /**
      * Returns a list of \Estasi\Form\Interfaces\Option objects
      *
      * @return \Estasi\Form\Interfaces\Option[]
      */
     public function getOptions(): iterable;
-
+    
     /**
      * OptGroup constructor.
      *
@@ -48,7 +48,7 @@ interface OptGroup extends JsonSerializable
     public function __construct(
         string $label,
         bool $disabled = self::ENABLE,
-        $attributes = self::WITHOUT_ATTRIBUTES,
+        string|iterable|null $attributes = self::WITHOUT_ATTRIBUTES,
         Option ...$options
     );
 }

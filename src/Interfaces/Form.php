@@ -22,38 +22,38 @@ interface Form extends Verifiable
      * @return bool
      */
     public function hasField(string $name): bool;
-
+    
     /**
-     * Returns an object of the \Estasi\Form\Interfaces\Field class by its name (without value)
+     * Returns an object of the \Estasi\Form\Interfaces\Input class by its name (without value)
      *
      * @param string $name
      *
-     * @return \Estasi\Form\Interfaces\Field
+     * @return \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup
      * @throws \OutOfBoundsException If the "name" field is not found in the form elements!
      */
-    public function getField(string $name): Field;
-
+    public function getField(string $name): Field|FieldGroup;
+    
     /**
-     * Returns a list of \Estasi\Form\Interfaces\Field objects (without values)
+     * Returns a list of \Estasi\Form\Interfaces\Input objects (without values)
      *
-     * @return \Estasi\Form\Interfaces\Field[]
+     * @return \Estasi\Form\Interfaces\Field[]|\Estasi\Form\Interfaces\FieldGroup[]|iterable
      */
     public function getFields(): iterable;
     
     /**
-     * Returns a list of checked \Estasi\Form\Interfaces\Field objects (with values)
+     * Returns a list of checked \Estasi\Form\Interfaces\Input objects (with values)
      *
-     * @return \Estasi\Form\Interfaces\Field[]
+     * @return \Estasi\Form\Interfaces\Field[]|\Estasi\Form\Interfaces\FieldGroup[]|iterable
      */
     public function getFieldsValid(): iterable;
     
     /**
-     * Returns a list of \Estasi\Form\Interfaces\Field objects that failed validation (with values and errors)
+     * Returns a list of \Estasi\Form\Interfaces\Input objects that failed validation (with values and errors)
      *
-     * @return \Estasi\Form\Interfaces\Field[]
+     * @return \Estasi\Form\Interfaces\Field[]|\Estasi\Form\Interfaces\FieldGroup[]|iterable
      */
     public function getFieldsInvalid(): iterable;
-
+    
     /**
      * Sets the value of the form to filter and validate
      *
@@ -62,19 +62,21 @@ interface Form extends Verifiable
      * @api
      */
     public function setValues(iterable $values): void;
-
+    
     /**
      * Returns form values after filtering and checking (in the same structure as they were received in)
+     * It is created only after calling the isValid() or not Valid () methods
+     * It MUST return null before calling one of these methods
      *
-     * @return iterable
+     * @return iterable|null
      * @api
      */
-    public function getValues(): iterable;
-
+    public function getValues(): ?iterable;
+    
     /**
      * Form constructor.
      *
-     * @param \Estasi\Form\Interfaces\Field ...$fields Form field
+     * @param \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup ...$fields
      */
-    public function __construct(Field ...$fields);
+    public function __construct(Field|FieldGroup ...$fields);
 }

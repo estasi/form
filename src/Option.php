@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Estasi\Form;
 
 use Ds\Map;
+use OutOfBoundsException;
 
 /**
  * Class Option
@@ -13,26 +14,34 @@ use Ds\Map;
  */
 final class Option implements Interfaces\Option
 {
+    use Traits\AssertName;
     use Traits\GetAttributesAsIterable;
-
-    private string $text;
-    /** @var \Ds\Map|string|null */
-    private $attributes;
-
+    
+    private string     $text;
+    private Map|string $attributes;
+    
     /**
      * @inheritDoc
      */
-    public function __construct(?string $text = null, $attributes = null)
+    public function __construct(?string $text = null, string|iterable|null $attributes = null)
     {
-        if (false === isset($this->text)) {
-            $this->text = $text ?? '';
+        if (isset($text)) {
+            $this->text = $text;
         }
-        if (isset($this->attributes)) {
-            $attributes = $this->attributes;
+        
+        $errorMessage = 'Text option is not specified!';
+        isset($this->text)
+            ? $this->assertName($this->text, $errorMessage)
+            : (throw new OutOfBoundsException($errorMessage));
+        
+        if (isset($attributes)) {
+            $this->attributes = $attributes;
         }
-        $this->attributes = new Map($this->getAttributesAsIterable($attributes));
+        $this->attributes = isset($this->attributes)
+            ? new Map($this->getAttributesAsIterable($this->attributes))
+            : new Map();
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -40,7 +49,7 @@ final class Option implements Interfaces\Option
     {
         return $this->text;
     }
-
+    
     /**
      * @inheritDoc
      */
@@ -48,7 +57,7 @@ final class Option implements Interfaces\Option
     {
         return $this->attributes;
     }
-
+    
     /**
      * @inheritDoc
      */
