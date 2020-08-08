@@ -12,9 +12,9 @@ namespace Estasi\Form\Interfaces;
 interface FieldAware
 {
     /**
-     * Returns an object that implements the interface \Estasi\Form\Interfaces\Field
+     * Returns an object that implements the interface \Estasi\Form\Interfaces\Input
      *
-     * @return \Estasi\Form\Interfaces\Field
+     * @return \App\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup
      */
-    public function getField(): Field;
+    public function getField(): Field|FieldGroup;
 }
