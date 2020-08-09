@@ -203,11 +203,8 @@ final class Field implements Interfaces\Field
     private function assertDefaultValue(string $name, &$defaultValue): void
     {
         if ($this->isFieldArray($name)) {
-            if (self::WITHOUT_DEFAULT_VALUE === $defaultValue) {
-                $defaultValue = [];
+            $defaultValue ??= [];
     
-                return;
-            }
             if (false === is_iterable($defaultValue)) {
                 throw new InvalidArgumentException(
                     sprintf(
