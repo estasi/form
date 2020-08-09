@@ -9,6 +9,7 @@ use Estasi\Form\Interfaces\Field;
 use Estasi\Form\Interfaces\FieldGroup;
 use Estasi\Utility\ArrayUtils;
 use Estasi\Utility\Traits\Errors;
+use Generator;
 use OutOfBoundsException;
 
 use function sprintf;
@@ -24,10 +25,13 @@ final class Form implements Interfaces\Form
     use Traits\Validation;
     use Traits\SquareBracketsToDot;
     
+    /** @var \Ds\Map<string, \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup> */
     private Map    $fields;
+    /** @var \Ds\Map<string, \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup> */
     private Map    $fieldsValid;
+    /** @var \Ds\Map<string, \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup> */
     private Map    $fieldsInvalid;
-    private array  $defaultValues;
+    private array  $rawValues;
     private ?array $values;
     
     /**
@@ -41,7 +45,7 @@ final class Form implements Interfaces\Form
         }
         $this->fieldsValid   = new Map();
         $this->fieldsInvalid = new Map();
-        $this->defaultValues = [];
+        $this->rawValues     = [];
         $this->values        = null;
     }
     
@@ -102,7 +106,7 @@ final class Form implements Interfaces\Form
      */
     public function setValues(iterable $values): void
     {
-        $this->defaultValues = ArrayUtils::iteratorToArrayRecursive($values);
+        $this->rawValues = ArrayUtils::iteratorToArrayRecursive($values);
     }
     
     /**
@@ -115,30 +119,41 @@ final class Form implements Interfaces\Form
          * @var string                                                           $name
          * @var \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup $field
          */
-        foreach ($this->fields as $name => $field) {
-            $name  = $this->squareBracketsToDotDelimiter($name);
-            $value = ArrayUtils::get($name, $this->defaultValues);
-            $field = $field instanceof FieldGroup
-                ? $field->withValue(ArrayUtils::oneToMultiDimArray([$name => $value]), $this->defaultValues)
-                : $field->withValue($value, $this->defaultValues);
-            
+        foreach ($this->genFields() as $name => $field) {
             if ($field->isValid()) {
                 $this->values[$name] = $field->getValue();
                 $this->fieldsValid->put($field->getName(), $field);
                 continue;
             }
-            
+        
             $isValid = false;
             $this->fieldsInvalid->put($field->getName(), $field);
             $this->mergeErrors($field->getLastErrors());
-            
+        
             if ($field->isBreakOnFailure()) {
                 break;
             }
         }
-        
+    
         $this->values = ArrayUtils::oneToMultiDimArray($this->values);
-        
+    
         return $isValid;
+    }
+    
+    private function genFields(): Generator
+    {
+        /**
+         * @var string                                                           $name
+         * @var \Estasi\Form\Interfaces\Field|\Estasi\Form\Interfaces\FieldGroup $field
+         */
+        foreach ($this->fields as $name => $field) {
+            $name  = $this->squareBracketsToDotDelimiter($name);
+            $value = ArrayUtils::get($name, $this->rawValues);
+            $field = $field instanceof FieldGroup
+                ? $field->withValue(ArrayUtils::oneToMultiDimArray([$name => $value]), $this->rawValues)
+                : $field->withValue($value, $this->rawValues);
+            
+            yield $name => $field;
+        }
     }
 }
